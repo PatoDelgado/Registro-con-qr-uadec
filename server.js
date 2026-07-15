@@ -4,8 +4,8 @@ const path = require('path');
 const db = require('./database');
 
 const app = express();
-const PORT = 3000;
-const HOST = '127.0.0.1';
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
 
 app.use(cors());
 app.use(express.json());
