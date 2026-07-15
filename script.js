@@ -8,12 +8,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnImprimir = document.getElementById("btnImprimir");
   const feedback = document.getElementById("mensajeFeedback");
 
-  const API_URL = "/api";
+  const API_URL = window.API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "/api" : null);
   let qrInstance = null;
   let hasQr = false;
 
   // 1. Cargar visitas activas desde el servidor al iniciar
   const cargarVisitas = async () => {
+    if (!API_URL) {
+      selectVisita.innerHTML = '<option value="">Backend no disponible en GitHub Pages</option>';
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/visitas`);
       const visitas = await response.json();
@@ -40,6 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (!API_URL) {
+      cuposIndicador.style.display = "none";
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/visitas/${idVisita}/cupo`);
       const data = await response.json();
@@ -60,6 +70,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // 3. Procesar el envío del Formulario (Registro + Generación del QR Único)
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (!API_URL) {
+      setFeedback("El registro requiere el backend. En GitHub Pages solo se sirve la interfaz.", "error");
+      return;
+    }
 
     const payload = {
       nombre: document.getElementById("nombre").value.trim(),
