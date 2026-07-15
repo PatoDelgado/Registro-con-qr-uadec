@@ -6,7 +6,7 @@
   <title>UAdeC - Registro de Visitas</title>
   <!-- Mantén tus estilos FontAwesome y fuentes aquí -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
   <!-- QRious Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 </head>
@@ -14,16 +14,26 @@
 
   <!-- Cabecera Institucional -->
   <header class="site-header">
-    <div class="site-header__badge">
-      <span>Portal Institucional UAdeC</span>
+    <div class="site-header__brand">
+      <img class="site-header__logo" src="/uadec-logo.png" alt="UAdeC">
+      <div class="site-header__copy">
+        <span>Universidad Autónoma de Coahuila</span>
+        <strong>Registro de Visitas Industriales</strong>
+      </div>
     </div>
-    <h1>Registro para Visitas Industriales</h1>
-    <p>Genera tu pase de acceso único mediante código QR</p>
+    <div class="site-header__badge">
+      <span>Portal UAdeC</span>
+    </div>
   </header>
 
   <main class="container">
     <!-- Formulario de Registro -->
     <section class="card form-section">
+      <div class="hero-copy hero-copy--compact">
+        <span class="eyebrow">En el bien fincamos el saber</span>
+        <h1>Registro para visitas industriales</h1>
+        <p>Genera tu pase de acceso con identidad UAdeC y código QR único.</p>
+      </div>
       <form id="registroForm">
         <div class="form-group">
           <label for="nombre"><i class="fa-solid fa-user"></i> Nombre Completo</label>
@@ -80,6 +90,6 @@
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

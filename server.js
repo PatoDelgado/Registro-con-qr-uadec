@@ -5,12 +5,17 @@ const db = require('./database');
 
 const app = express();
 const PORT = 3000;
+const HOST = '127.0.0.1';
 
 app.use(cors());
 app.use(express.json());
 
-// Servir los archivos estáticos de tu diseño (HTML, CSS, JS) automáticamente
-app.use(express.static(path.join(__dirname)));
+// Servir archivos estáticos desde la raíz del proyecto
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // API Ruta 1: Obtener la lista de visitas activas para el menú desplegable
 app.get('/api/visitas', (req, res) => {
@@ -103,6 +108,6 @@ app.post('/api/registrar', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor de la UAdeC corriendo en: http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor de la UAdeC corriendo en: http://${HOST}:${PORT}`);
 });

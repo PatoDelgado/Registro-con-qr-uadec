@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnImprimir = document.getElementById("btnImprimir");
   const feedback = document.getElementById("mensajeFeedback");
 
-  const API_URL = "http://localhost:3000/api";
+  const API_URL = "/api";
   let qrInstance = null;
   let hasQr = false;
 
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       setFeedback(err.message, "error");
       qrMount.innerHTML = `
-        <i class="fa-solid fa-circle-exmark placeholder-icon" style="color: #e53e3e;"></i>
+        <i class="fa-solid fa-circle-xmark placeholder-icon" style="color: #e53e3e;"></i>
         <p>No se pudo generar el pase. Verifica las restricciones de cupo.</p>
       `;
     }
