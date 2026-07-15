@@ -714,3 +714,56 @@ input {
     box-shadow: none;
   }
 }
+/* Estilos para el Selector de Visita */
+select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 1rem;
+  color: #1a202c;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+select:focus {
+  border-color: var(--primary-strong, #0e1b3d);
+}
+
+/* Banner Informativo de Cupos */
+.cupos-banner {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+}
+
+.cupos-banner.danger {
+  background-color: #fff5f5;
+  color: #c53030;
+  border: 1px solid #fed7d7;
+}
+
+/* Loader animado tipo Hacker */
+.hacker-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #0e1b3d;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.hacker-loader i {
+  font-size: 2rem;
+  color: #d69e2e;
+}

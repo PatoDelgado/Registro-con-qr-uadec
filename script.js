@@ -1,235 +1,152 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("qrForm");
-  const preview = document.getElementById("qrPreview");
-  const message = document.getElementById("formMessage");
+  const form = document.getElementById("registroForm");
+  const selectVisita = document.getElementById("id_visita");
+  const cuposIndicador = document.getElementById("cupos-indicador");
+  const qrMount = document.getElementById("qrMount");
+  const preview = document.getElementById("preview");
   const btnDescargar = document.getElementById("btnDescargar");
   const btnImprimir = document.getElementById("btnImprimir");
-  const btnLimpiar = document.getElementById("btnLimpiar");
-  let qrMount = document.getElementById("qrMount");
-  let qrCanvas = null;
+  const feedback = document.getElementById("mensajeFeedback");
+
+  const API_URL = "http://localhost:3000/api";
   let qrInstance = null;
-
-  const inputs = {
-    nombre: document.getElementById("nombre"),
-    matricula: document.getElementById("matricula"),
-    facultad: document.getElementById("facultad"),
-    carrera: document.getElementById("carrera"),
-    empresa: document.getElementById("empresa"),
-  };
-
-  const errorNodes = new Map(
-    [...document.querySelectorAll("[data-error-for]")].map((node) => [node.dataset.errorFor, node])
-  );
-
   let hasQr = false;
 
-  const trimValue = (value) => value.replace(/\s+/g, " ").trim();
+  // 1. Cargar visitas activas desde el servidor al iniciar
+  const cargarVisitas = async () => {
+    try {
+      const response = await fetch(`${API_URL}/visitas`);
+      const visitas = await response.json();
 
-  const setMessage = (text, type) => {
-    message.className = `message show ${type}`;
-    message.textContent = text;
-  };
-
-  const clearMessage = () => {
-    message.className = "message";
-    message.textContent = "";
-  };
-
-  const setFieldState = (name, state, text = "") => {
-    const field = document.getElementById(name).closest(".field");
-    field.classList.remove("is-valid", "is-invalid");
-
-    if (state) {
-      field.classList.add(state);
-    }
-
-    const errorNode = errorNodes.get(name);
-    if (errorNode) {
-      errorNode.textContent = state === "is-invalid" ? text : "";
+      selectVisita.innerHTML = '<option value="">-- Selecciona una fábrica / destino --</option>';
+      
+      visitas.forEach(visita => {
+        const option = document.createElement("option");
+        option.value = visita.id_visita;
+        option.textContent = `${visita.empresa} (${visita.fecha})`;
+        selectVisita.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Error cargando visitas:", error);
+      selectVisita.innerHTML = '<option value="">Error al cargar visitas del servidor</option>';
     }
   };
 
-  const updateCounter = (input) => {
-    const counter = document.querySelector(`[data-counter-for="${input.id}"]`);
-    if (!counter || !input.maxLength) return;
-
-    counter.textContent = `${trimValue(input.value).length}/${input.maxLength}`;
-  };
-
-  const updateAllCounters = () => {
-    Object.values(inputs).forEach((input) => {
-      updateCounter(input);
-    });
-  };
-
-  const validateField = (name) => {
-    const input = inputs[name];
-    const value = trimValue(input.value);
-
-    if (input.required && !value) {
-      setFieldState(name, "is-invalid", "Este campo es obligatorio.");
-      return false;
+  // 2. Monitorear cambios en el menú para mostrar cupos restantes en tiempo real
+  selectVisita.addEventListener("change", async (e) => {
+    const idVisita = e.target.value;
+    if (!idVisita) {
+      cuposIndicador.style.display = "none";
+      return;
     }
 
-    setFieldState(name, "is-valid");
-    return true;
-  };
+    try {
+      const response = await fetch(`${API_URL}/visitas/${idVisita}/cupo`);
+      const data = await response.json();
 
-  const validateForm = () => {
-    clearMessage();
+      cuposIndicador.style.display = "flex";
+      if (data.disponibles <= 0) {
+        cuposIndicador.className = "cupos-banner danger";
+        cuposIndicador.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Cupos Agotados (Límite: ${data.cupo_maximo})`;
+      } else {
+        cuposIndicador.className = "cupos-banner";
+        cuposIndicador.innerHTML = `<i class="fa-solid fa-circle-info"></i> Quedan <strong>${data.disponibles} de ${data.cupo_maximo}</strong> lugares disponibles.`;
+      }
+    } catch (error) {
+      console.error("Error al consultar cupo:", error);
+    }
+  });
 
-    const requiredFields = ["nombre", "matricula", "facultad", "carrera", "empresa"];
-    return requiredFields.map(validateField).every(Boolean);
-  };
+  // 3. Procesar el envío del Formulario (Registro + Generación del QR Único)
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const buildQrText = () => {
-    // El QR debe contener texto legible para cualquier lector de QR.
-    const nombre = trimValue(inputs.nombre.value);
-    const matricula = trimValue(inputs.matricula.value);
-    const facultad = trimValue(inputs.facultad.value);
-    const carrera = trimValue(inputs.carrera.value);
-    const empresa = trimValue(inputs.empresa.value);
+    const payload = {
+      nombre: document.getElementById("nombre").value.trim(),
+      matricula: document.getElementById("matricula").value.trim(),
+      facultad: document.getElementById("facultad").value.trim(),
+      carrera: document.getElementById("carrera").value.trim(),
+      id_visita: selectVisita.value
+    };
 
-    const lines = [
-      "UNIVERSIDAD AUTÓNOMA DE COAHUILA",
-      "",
-      `Nombre: ${nombre}`,
-      `Matrícula: ${matricula}`,
-      `Facultad: ${facultad}`,
-      `Carrera: ${carrera}`,
-      `Empresa: ${empresa}`,
-    ];
+    // Mensaje de carga
+    setFeedback("Procesando tu registro en la base de datos...", "info");
+    qrMount.innerHTML = `
+      <div class="hacker-loader">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>Guardando en base de datos...</span>
+      </div>
+    `;
 
-    return lines.join("\n");
-  };
+    try {
+      const response = await fetch(`${API_URL}/registrar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-  const getQrCanvas = () => qrCanvas;
+      const result = await response.json();
 
-  const ensurePreviewIsVisible = () => {
-    preview.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
+      if (!response.ok) {
+        throw new Error(result.error || "Error al realizar el registro.");
+      }
 
-  const generateQr = (text) => {
+      // Registro exitoso: Generar QR institucional con el Token único retornado
+      setFeedback("¡Pase de acceso generado con éxito!", "success");
+      generarPaseQR(result.id_registro);
+
+    } catch (err) {
+      setFeedback(err.message, "error");
+      qrMount.innerHTML = `
+        <i class="fa-solid fa-circle-exmark placeholder-icon" style="color: #e53e3e;"></i>
+        <p>No se pudo generar el pase. Verifica las restricciones de cupo.</p>
+      `;
+    }
+  });
+
+  const generarPaseQR = (textoToken) => {
     qrMount.innerHTML = "";
     preview.classList.remove("empty");
     preview.classList.add("ready");
-    hasQr = false;
-    btnDescargar.disabled = true;
-    btnImprimir.disabled = true;
 
-    try {
-      qrCanvas = document.createElement("canvas");
-      qrCanvas.width = 280;
-      qrCanvas.height = 280;
-      qrMount.appendChild(qrCanvas);
+    const canvas = document.createElement("canvas");
+    canvas.width = 250;
+    canvas.height = 250;
+    qrMount.appendChild(canvas);
 
-      qrInstance = new QRious({
-        element: qrCanvas,
-        value: text,
-        size: 280,
-        level: "L",
-        background: "#ffffff",
-        foreground: "#0e1b3d",
-      });
-
-      window.setTimeout(() => {
-        const rendered = qrMount.querySelector("canvas");
-        if (!rendered) {
-          setMessage("La vista previa no pudo renderizarse. Revisa que QRious esté cargado correctamente.", "error");
-          return;
-        }
-
-        hasQr = true;
-        btnDescargar.disabled = false;
-        btnImprimir.disabled = false;
-      }, 0);
-    } catch (error) {
-      console.error(error);
-      setMessage("No se pudo generar la vista previa del QR.", "error");
-    }
-  };
-
-  const downloadQr = () => {
-    if (!hasQr) return;
-
-    const canvas = getQrCanvas();
-    const fileName = `QR-UADEC-${Date.now()}.png`;
-
-    const triggerDownload = (dataUrl) => {
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setMessage("QR descargado correctamente en formato PNG.", "success");
-    };
-
-    if (canvas) {
-      triggerDownload(canvas.toDataURL("image/png"));
-      return;
-    }
-
-    setMessage("No se encontró el canvas del QR para descargar.", "error");
-  };
-
-  const printQr = () => {
-    if (!hasQr) return;
-    window.print();
-  };
-
-  const resetPreview = () => {
-    qrMount.innerHTML = "";
-    preview.classList.remove("ready");
-    preview.classList.add("empty");
-    hasQr = false;
-    qrCanvas = null;
-    qrInstance = null;
-    btnDescargar.disabled = true;
-    btnImprimir.disabled = true;
-  };
-
-  const clearForm = () => {
-    form.reset();
-    Object.keys(inputs).forEach((name) => setFieldState(name, ""));
-    updateAllCounters();
-    clearMessage();
-    resetPreview();
-  };
-
-  Object.values(inputs).forEach((input) => {
-    input.addEventListener("input", () => {
-      updateCounter(input);
-      clearMessage();
-      if (input.value.trim()) {
-        validateField(input.id);
-      } else {
-        setFieldState(input.id, "");
-      }
+    qrInstance = new QRious({
+      element: canvas,
+      value: textoToken,
+      size: 250,
+      level: "H" // Protección alta contra fallos de escaneo
     });
 
-    input.addEventListener("blur", () => {
-      validateField(input.id);
-      updateCounter(input);
-    });
+    hasQr = true;
+    btnDescargar.disabled = false;
+    btnImprimir.disabled = false;
+  };
+
+  const setFeedback = (msg, status) => {
+    feedback.textContent = msg;
+    feedback.style.display = "block";
+    feedback.className = `message message--${status}`;
+  };
+
+  // Descarga del canvas como imagen de pase
+  btnDescargar.addEventListener("click", () => {
+    if (!hasQr) return;
+    const canvas = qrMount.querySelector("canvas");
+    const link = document.createElement("a");
+    link.download = `Pase-Acceso-UAdeC.png`;
+    link.href = canvas.toDataURL();
+    link.click();
   });
 
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    if (!validateForm()) {
-      setMessage("Revisa los campos resaltados antes de generar el QR.", "error");
-      return;
-    }
-
-    const qrText = buildQrText();
-    generateQr(qrText);
+  // Imprimir el QR generado
+  btnImprimir.addEventListener("click", () => {
+    if (hasQr) window.print();
   });
 
-  btnDescargar.addEventListener("click", downloadQr);
-  btnImprimir.addEventListener("click", printQr);
-  btnLimpiar.addEventListener("click", clearForm);
-
-  updateAllCounters();
-  resetPreview();
+  // Cargar las visitas al entrar
+  cargarVisitas();
 });
