@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UAdeC - Admin de Visitas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./config.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__brand">
+      <img class="site-header__logo" src="./uadec-logo.png" alt="UAdeC">
+      <div class="site-header__copy">
+        <span>Universidad Autónoma de Coahuila</span>
+        <strong>Panel de Administración</strong>
+      </div>
+    </div>
+    <div class="site-header__badge">
+      <span>Admin</span>
+      <a class="badge-link" href="./index.html">Registro</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card admin-section">
+      <div class="hero-copy hero-copy--compact">
+        <span class="eyebrow">Panel de administración</span>
+        <h1>Gestión de visitas</h1>
+        <p>Crear, editar, pausar, eliminar y exportar visitas con sus registros.</p>
+      </div>
+
+      <div class="admin-toolbar">
+        <div class="form-group admin-inline">
+          <label for="adminKey"><i class="fa-solid fa-key"></i> Clave de admin</label>
+          <input type="password" id="adminKey" placeholder="Ingresa la clave de administración">
+        </div>
+        <div class="admin-actions">
+          <button class="btn btn--primary" id="btnAdminLogin" type="button">
+            <i class="fa-solid fa-right-to-bracket"></i> Entrar
+          </button>
+          <button class="btn" id="btnAdminLogout" type="button">
+            <i class="fa-solid fa-right-from-bracket"></i> Salir
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <form id="adminForm" class="admin-form card-inner">
+          <h3>Nueva visita</h3>
+          <div class="form-group">
+            <label for="adminEmpresa">Empresa</label>
+            <input type="text" id="adminEmpresa" placeholder="Nombre de la empresa">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="adminFecha">Fecha</label>
+              <input type="date" id="adminFecha">
+            </div>
+            <div class="form-group">
+              <label for="adminCupo">Cupo</label>
+              <input type="number" id="adminCupo" min="1" step="1" placeholder="20">
+            </div>
+          </div>
+          <label class="toggle-row">
+            <input type="checkbox" id="adminActivo" checked>
+            <span>Activa</span>
+          </label>
+          <button type="submit" class="btn btn--primary">
+            <i class="fa-solid fa-plus"></i> Crear visita
+          </button>
+        </form>
+
+        <div class="admin-list card-inner">
+          <div class="admin-list__header">
+            <h3>Visitas registradas</h3>
+            <button class="btn" id="btnRefrescarAdmin" type="button">
+              <i class="fa-solid fa-rotate"></i> Refrescar
+            </button>
+          </div>
+          <div id="adminList" class="admin-cards"></div>
+        </div>
+      </div>
+
+      <div id="adminFeedback" class="message" style="display: none;"></div>
+    </section>
+  </main>
+
+  <script src="./admin.js"></script>
+</body>
+</html>
