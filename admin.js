@@ -14,6 +14,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const API_URL = window.API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "/api" : null);
   let adminKey = localStorage.getItem("adminKey") || "";
 
+  const setAdminAccess = (enabled) => {
+    const controls = adminForm.querySelectorAll("input, button, select, textarea");
+    controls.forEach((control) => {
+      if (control.id === "adminKey" || control.id === "btnAdminLogin") return;
+      control.disabled = !enabled;
+    });
+
+    adminForm.classList.toggle("is-hidden", !enabled);
+    adminForm.toggleAttribute("aria-hidden", !enabled);
+
+    btnAdminLogout.disabled = !enabled;
+    btnRefrescarAdmin.disabled = !enabled;
+    adminList.classList.toggle("is-locked", !enabled);
+    adminList.toggleAttribute("aria-hidden", !enabled);
+
+    if (!enabled) {
+      adminList.innerHTML = '<p class="admin-meta admin-locked">Ingresa la clave de admin para habilitar la creación y edición de visitas.</p>';
+    }
+  };
+
   const setAdminFeedback = (msg, status) => {
     adminFeedback.textContent = msg;
     adminFeedback.style.display = "block";
@@ -109,7 +129,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (adminKey) {
     adminKeyInput.value = adminKey;
+    setAdminAccess(true);
     cargarAdminVisitas();
+  } else {
+    setAdminAccess(false);
   }
 
   btnAdminLogin.addEventListener("click", () => {
@@ -121,6 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     adminKey = value;
     localStorage.setItem("adminKey", adminKey);
     setAdminFeedback("Acceso de admin habilitado.", "success");
+    setAdminAccess(true);
     cargarAdminVisitas();
   });
 
@@ -130,12 +154,17 @@ document.addEventListener("DOMContentLoaded", () => {
     adminKeyInput.value = "";
     adminList.innerHTML = "";
     setAdminFeedback("Sesión de admin cerrada.", "success");
+    setAdminAccess(false);
   });
 
   btnRefrescarAdmin.addEventListener("click", cargarAdminVisitas);
 
   adminForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (adminForm.classList.contains("is-hidden")) {
+      setAdminFeedback("Primero entra con la clave de admin.", "error");
+      return;
+    }
     if (!adminKey) {
       setAdminFeedback("Primero entra con la clave de admin.", "error");
       return;
@@ -166,6 +195,8 @@ document.addEventListener("DOMContentLoaded", () => {
       setAdminFeedback(error.message, "error");
     }
   });
+
+  setAdminAccess(Boolean(adminKey));
 
   adminList.addEventListener("submit", async (e) => {
     const formRow = e.target.closest(".admin-edit-form");

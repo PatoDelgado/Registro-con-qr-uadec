@@ -17,18 +17,20 @@
         <strong>Panel de Administración</strong>
       </div>
     </div>
-    <div class="site-header__badge">
+    <nav class="site-header__badge" aria-label="Accesos rápidos">
       <span>Admin</span>
       <a class="badge-link" href="./index.html">Registro</a>
-    </div>
+    </nav>
   </header>
 
-  <main class="container">
+  <main class="app-shell">
     <section class="card admin-section">
-      <div class="hero-copy hero-copy--compact">
-        <span class="eyebrow">Panel de administración</span>
-        <h1>Gestión de visitas</h1>
-        <p>Crear, editar, pausar, eliminar y exportar visitas con sus registros.</p>
+      <div class="section-head">
+        <div class="hero-copy hero-copy--compact">
+          <span class="eyebrow">Panel institucional</span>
+          <h1>Gestión de visitas</h1>
+          <p>Crear, editar, pausar, eliminar y exportar visitas.</p>
+        </div>
       </div>
 
       <div class="admin-toolbar">
@@ -47,7 +49,7 @@
       </div>
 
       <div class="admin-grid">
-        <form id="adminForm" class="admin-form card-inner">
+        <form id="adminForm" class="admin-form card-inner is-hidden" aria-hidden="true">
           <h3>Nueva visita</h3>
           <div class="form-group">
             <label for="adminEmpresa">Empresa</label>
